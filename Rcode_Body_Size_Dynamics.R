@@ -5,11 +5,12 @@
 #  
 # -------------------------------------------------------------------------- #
 #
-# Version 18/08/2025
+# Version 28/11/2025
 #
 # -------------------------------------------------------------------------- #
 
-#Check your working directory, so the code can read in the correct files. If required, change you workig directory using setwd()
+#Check your working directory, so the code can read in the correct files. 
+#If required, change you working directory using setwd()
 getwd()
 #setwd()
 
@@ -19,18 +20,24 @@ library("ggplot2")
 library("plyr")
 library("viridis")
 
-#read in the raw data. here I use the commend .csv2, because a German version of excel was used for saving the .csv file.
+#read in the raw data. Here I use the commend .csv2, because a German version of a .csv file was used for saving the .csv file.
 #If you modified the .csv file, you may need to change the command to "read.csv".
 siz <- read.csv2("WF_Bivalve_Body_Size.csv")
 
-#This just selects the different genera that will be included in the analysis. It essentially stops errors appearing.
+#This just selects the different genera that will be included in the analysis. 
+#It essentially stops errors appearing.
 tow <- siz[siz$Genus=="Acharax" | siz$Genus=="Avichlamys" | siz$Genus=="Bakevellia" | siz$Genus=="Hoernesia" | siz$Genus=="Entolium"| siz$Genus=="Pleuromya"| siz$Genus=="Homomya"| siz$Genus=="Claraia" | siz$Genus=="Costatoria"| siz$Genus=="Crittendenia" | siz$Genus=="Edmondia" | siz$Genus=="Etheripecten" | siz$Genus=="Eumorphotis" | siz$Genus=="Gardenapecten"| siz$Genus=="Grammatodon (Cosmetodon)"| siz$Genus=="Ladinomya" | siz$Genus=="Leptochondria"| siz$Genus=="Lovaralucina"| siz$Genus=="Neoschizodus" | siz$Genus=="Palaeolima"| siz$Genus=="Permophorus" |siz$Genus=="Pernopecten" | siz$Genus=="Promyalina" |siz$Genus=="Promytilus" | siz$Genus=="Pteria" | siz$Genus=="Schizodus" | siz$Genus=="Scythentolium" | siz$Genus=="Stutchburia"| siz$Genus=="Tambanella"| siz$Genus=="Towapteria"| siz$Genus=="Unionites" | siz$Genus=="Vacunella" | siz$Genus=="Volsellina",]
 
 #This organises the stratigraphic sequences into the correct order for the analyses.
 tow$StrSeq <- factor(tow$StrSeq, levels = c("Lo3", "Lo4", "Lo5", "In1", "In2", "Ol1", "Ol2", "Ol3"))
+#This organises the locations from proximal to basin, for fig. 7 later in the analysis.
+tow$Section <- factor(tow$Section, levels = c("Tramin", "Bulla", "Culac", "Balest", 
+                                              "Ruf da Piz", "Jmueia", "Seres", 
+                                              "Preroman"))
+
 #This organises the species into their genera, and also phylogeny.
 tow$Name <- factor(tow$Name, levels = c("Vacunella elongata", 
-                                          "Stutchburia costata", "Stutchburia sp.", "Stutchburia tschernyschewi",
+                                          "Stutchburia costata", "Stutchburia sp.", "Stutchburia sp. B", "Stutchburia tschernyschewi",
                                           "Costatoria subrotunda", "Costatoria costata",
                                           "Schizodus obscurus",
                                           "Neoschizodus elongatus", "Neoschizodus laevigatus", "Neoschizodus orbicularis", "Neoschizodus ovatus",
@@ -53,7 +60,7 @@ tow$Name <- factor(tow$Name, levels = c("Vacunella elongata",
                                           "Promyalina schamarae", "Promyalina eduliformis",
                                           "Crittendenia sp.",
                                           "Avichlamys voelseckhofensis",
-                                          "Claraia aurita","Claraia sp.", "Claraia clarae",
+                                          "Claraia aurita","Claraia sp.", "Claraia clarae", "Claraia stachei",
                                           "Scythentolium sp.", "Scythentolium sp.A", "Scythentolium tirolicum",
                                           "Entolium discites",
                                           "Pernopecten latangulatus", "Pernopecten tirolensis",
@@ -69,9 +76,9 @@ ggplot(tow, aes(x = StrSeq, y = LN, col = Name)) +
   theme_bw() +
   theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) +
   geom_hline(aes(yintercept=0)) +
-  theme(legend.position = "bottom", legend.title =element_blank())
+  theme(legend.position = "none", legend.title =element_blank())
 
-#This plots the median size for each genus, as a data exploration exersize.
+#This plots the median size for each genus, as a data exploration exercise.
 ggplot(tow, aes(x = StrSeq, y = LN, col = Genus)) + 
   geom_point(stat = "summary", fun = "median") +
   theme_bw() +
@@ -103,7 +110,7 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                  },
                  measurevar
   )
-    # Rename the "mean" column    
+  # Rename the "mean" column    
   datac <- rename(datac, c("mean" = measurevar))
   datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
   # Confidence interval multiplier for standard error
@@ -114,7 +121,7 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
   return(datac)
 }
 
-#Figure 2B
+#Figure 2A
 #This plot, plots the mean size for each species and confidence interval.
 #This will produce the error NaNs were produced, but that is expected for species with not enough measurements to calculate confidence intervals.
 tgc <- summarySE(tow, measurevar="LN", groupvars=c("StrSeq","Name"))
@@ -129,7 +136,7 @@ ggplot(tgc, aes(x=StrSeq, y=LN, colour=Name)) +
   theme(legend.position="bottom", legend.title = element_blank())+
   ylim(1, 3.5)
 
-#Figure 2A
+#Figure 2B
 #This plot, plots the mean size for each genus and confidence interval.
 tgg <- summarySE(tow, measurevar="LN", groupvars=c("StrSeq","Genus"))
 ggplot(tgg, aes(x=StrSeq, y=LN, colour=Genus)) + 
@@ -141,8 +148,8 @@ ggplot(tgg, aes(x=StrSeq, y=LN, colour=Genus)) +
   theme(legend.position="bottom", legend.title = element_blank())+
   ylim(1, 3.5)
 
-#The code for the plots in Fig. 3 and the Rego et al. 82012) diagrams require the variables tgc and tgg to be saved as .csv files. 
-#write.csv2() is for German computers.
+#The code for the plots in Fig. 3 and the Rego et al. (2012) diagrams require the variables tgc and tgg to be saved as .csv files. 
+#write.csv2() is for German computers, use write.csv() if you are using an English computer.
 write.csv2(tgc, "tgc.csv")
 write.csv2(tgg, "tgg.csv")
 
@@ -170,60 +177,237 @@ for (i in 1: length(taxa)){
   
 }
 
-# ----------------------------FIGURE-05------------------------------------ #
+# ----------------------------FIGURE-05-06------------------------------------ #
 
 #species comparisons within a genus
+#add the number of observation for each species
+give.n.top <- function(x) {
+  return(c(y = max_y * 0.95, label = length(x)))
+}
+
 #For the genus Unionites
 unio <- tow[tow$Genus=="Unionites",]
-ggplot(unio, aes(x = StrSeq, y = LN, col = Species)) + 
+max_y <- max(unio$LN) * 1.1  # Slight buffer above max value
+
+u1 <- ggplot(unio, aes(x = StrSeq, y = LN, col = Name)) + 
   geom_boxplot(position = position_dodge2(preserve = "single")) +
+  stat_summary(fun.data = give.n.top, geom = "text", size = 2.75, fun.y = median,
+               position = position_dodge(width = 0.75))+
   theme_bw() +
   theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) +
   geom_hline(aes(yintercept=0)) +
   geom_vline(aes(xintercept=3.5))+
   ylim(0, 4) +
-  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")
+  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework") +
+  theme(legend.position="bottom", legend.title = element_blank())
 
-#For the genus Eumorphotis
-eumo <- tow[tow$Genus=="Eumorphotis",]
-ggplot(eumo, aes(x = StrSeq, y = LN, col = Species)) + 
+ggsave("Unionites.eps", plot = u1, device = "eps",
+      width = 180, height = 120, units = c("mm"), dpi = 900)
+
+#For the family HETEROPECTINIDAE
+eumo <- tow[tow$Family=="HETEROPECTINIDAE",]
+max_y <- max(eumo$LN) * 1.1  # Slight buffer above max value
+
+h1 <- ggplot(eumo, aes(x = StrSeq, y = LN, col = Name)) + 
   geom_boxplot(position = position_dodge2(preserve = "single")) +
+  stat_summary(fun.data = give.n.top, geom = "text", size = 2.75, fun.y = median,
+               position = position_dodge(width = 0.75))+
   theme_bw() +
   geom_vline(aes(xintercept=3.5))+
   theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) +
   geom_hline(aes(yintercept=0)) +
-  ylim(0, 5)+
-  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")
+  ylim(0, 4.9)+
+  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")+
+  theme(legend.position="bottom", legend.title = element_blank())
+
+ggsave("Heterepectinidae.eps", plot = h1, device = "eps",
+       width = 180, height = 140, units = c("mm"), dpi = 900)
 
 #For the family Bakevellidae
 bak <- tow[tow$Family=="BAKEVELLIIDAE",]
-ggplot(bak, aes(x = StrSeq, y = LN, col = Name)) + 
+max_y <- max(bak$LN) * 1.1  # Slight buffer above max value
+
+b1 <- ggplot(bak, aes(x = StrSeq, y = LN, col = Name)) + 
   geom_boxplot(position = position_dodge2(preserve = "single")) +
+  stat_summary(fun.data = give.n.top, geom = "text", size =2.75,  fun.y = median,
+               position = position_dodge(width = 0.75))+
   theme_bw() +
   geom_vline(aes(xintercept=3.5))+
   theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) +
   geom_hline(aes(yintercept=0)) +
-  ylim(0, 5) +
-  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")
+  ylim(0, 4) +
+  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")+
+  theme(legend.position="bottom", legend.title = element_blank())
 
-#For the genus Pernopecten
-per <- tow[tow$Genus=="Pernopecten",]
-ggplot(per, aes(x = StrSeq, y = LN, col = Species)) + 
+ggsave("Bakevellidae.eps", plot = b1, device = "eps",
+       width = 180, height = 140, units = c("mm"), dpi = 900)
+
+#For the superfamily TRIGONIOIDEA
+sch <- tow[tow$Superfamily=="TRIGONIOIDEA" | tow$Superfamily=="Trigonioidea",]
+max_y <- max(sch$LN) * 1.1  # Slight buffer above max value
+
+t1<- ggplot(sch, aes(x = StrSeq, y = LN, col = Name)) + 
   geom_boxplot(position = position_dodge2(preserve = "single")) +
+  stat_summary(fun.data = give.n.top, geom = "text", size =2.75, fun.y = median,
+               position = position_dodge(width = 0.75))+
   theme_bw() +
   geom_vline(aes(xintercept=3.5))+
   theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) +
   geom_hline(aes(yintercept=0)) +
-  ylim(0, 5) +
-  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")
+  ylim(0, 3.8) +
+  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")+
+  theme(legend.position="bottom", legend.title = element_blank())
 
-#For the related genera Schizodus and Neoschizodus
-sch <- tow[tow$Genus=="Schizodus" | siz$Genus=="Neoschizodus",]
-ggplot(sch, aes(x = StrSeq, y = LN, col = Name)) + 
+ggsave("Trigonioidea.eps", plot = t1, device = "eps",
+       width = 180, height = 140, units = c("mm"), dpi = 900)
+
+#Supplement data Exploration
+
+#For the Order PECTINIDA
+per <- tow[tow$Order=="PECTINIDA",]
+per <- per[per$Family!="HETEROPECTINIDAE",]
+max_y <- max(per$LN) * 1.1  # Slight buffer above max value
+
+p1 <- ggplot(per, aes(x = StrSeq, y = LN, col = Name)) + 
   geom_boxplot(position = position_dodge2(preserve = "single")) +
+  stat_summary(fun.data = give.n.top, geom = "text", size =2.75, fun.y = median,
+               position = position_dodge(width = 0.75))+
+  theme_bw() +
+  geom_vline(aes(xintercept=2.5))+
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) +
+  geom_hline(aes(yintercept=0)) +
+  ylim(0, max_y) +
+  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")+
+  theme(legend.position="bottom", legend.title = element_blank())
+
+ggsave("Pectinida.eps", plot = p1, device = "eps",
+       width = 180, height = 125, units = c("mm"), dpi = 900)
+
+#For the order MODIOMORPHIDA
+aso <- tow[tow$Order=="MODIOMORPHIDA" | tow$Order=="MODIOMORPHOIDA",]
+
+#add number of observations to the plot
+max_y <- max(aso$LN) * 1.1  # Slight buffer above max value
+
+m1 <- ggplot(aso, aes(x = StrSeq, y = LN, col = Name)) + 
+  geom_boxplot(position = position_dodge2(preserve = "single")) +
+  stat_summary(fun.data = give.n.top, geom = "text", size = 2.75, fun.y = median,
+               position = position_dodge(width = 0.75))+
   theme_bw() +
   geom_vline(aes(xintercept=2.5))+
   theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) +
   geom_hline(aes(yintercept=0)) +
   ylim(0, 5) +
-  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")
+  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")+
+  theme(legend.position="bottom", legend.title = element_blank())
+
+ggsave("Modiomorpha.eps", plot = m1, device = "eps",
+       width = 180, height = 120, units = c("mm"), dpi = 900)
+
+#For the order PTERIOIDA
+aso <- tow[tow$Order=="PTERIOIDA" | tow$Order=="Pterioida",]
+
+#add number of observations to the plot
+max_y <- max(aso$LN) * 1.1  # Slight buffer above max value
+
+pt1 <- ggplot(aso, aes(x = StrSeq, y = LN, col = Name)) + 
+  geom_boxplot(position = position_dodge2(preserve = "single")) +
+  stat_summary(fun.data = give.n.top, geom = "text", fun.y = median,
+               position = position_dodge(width = 0.75))+
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) +
+  geom_hline(aes(yintercept=0)) +
+  ylim(0, 5) +
+  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")+
+  theme(legend.position="bottom", legend.title = element_blank())
+
+ggsave("Pteroida.eps", plot = pt1, device = "eps",
+       width = 180, height = 120, units = c("mm"), dpi = 900)
+
+
+#For the others
+aso <- tow[tow$Superfamily=="EDMONDIOIDEA" | tow$Superfamily=="ARCOIDEA"| tow$Superfamily=="ANTHRACOSIOIDEA"
+           | tow$Superfamily=="PLEUROMYOIDEA"| tow$Superfamily=="LIMOIDEA" | tow$Superfamily=="LUCINACEA" ,]
+
+#add number of observations to the plot
+max_y <- max(aso$LN) * 1.1  # Slight buffer above max value
+
+ot1 <- ggplot(aso, aes(x = StrSeq, y = LN, col = Name)) + 
+  geom_boxplot(position = position_dodge2(preserve = "single")) +
+  stat_summary(fun.data = give.n.top, geom = "text", size =2.75,  fun.y = median,
+               position = position_dodge(width = 0.75))+
+  theme_bw() +
+  geom_vline(aes(xintercept=3.5))+
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) +
+  geom_hline(aes(yintercept=0)) +
+  ylim(0, 5) +
+  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")+
+  theme(legend.position="bottom", legend.title = element_blank())
+
+ggsave("others.eps", plot = ot1, device = "eps",
+       width = 180, height = 120, units = c("mm"), dpi = 900)
+
+#For the order MYTILOIDA
+aso <- tow[tow$Order=="MYTILOIDA" | tow$Order=="PHOLADOMYOIDEA",]
+#add number of observations to the plot
+max_y <- max(aso$LN) * 1.1  # Slight buffer above max value
+
+my1 <- ggplot(aso, aes(x = StrSeq, y = LN, col = Name)) + 
+  geom_boxplot(position = position_dodge2(preserve = "single")) +
+  stat_summary(fun.data = give.n.top, geom = "text", size =2.75,  fun.y = median,
+               position = position_dodge(width = 0.75))+
+  theme_bw() +
+  geom_vline(aes(xintercept=3.5))+
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) +
+  geom_hline(aes(yintercept=0)) +
+  ylim(0, 5) +
+  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")+
+  theme(legend.position="bottom", legend.title = element_blank())
+
+ggsave("Mytiloida.eps", plot = my1, device = "eps",
+       width = 180, height = 120, units = c("mm"), dpi = 900)
+
+
+#For the order SOLEMYOIDA
+aso <- tow[tow$Order=="SOLEMYOIDA",]
+#add number of observations to the plot
+max_y <- max(aso$LN) * 1.1  # Slight buffer above max value
+
+s1 <- ggplot(aso, aes(x = StrSeq, y = LN, col = Name)) + 
+  geom_boxplot(position = position_dodge2(preserve = "single")) +
+  stat_summary(fun.data = give.n.top, geom = "text", size =2.75, fun.y = median,
+               position = position_dodge(width = 0.75))+
+  theme_bw() +
+  geom_vline(aes(xintercept=2.5))+
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) +
+  geom_hline(aes(yintercept=0)) +
+  ylim(0, 5) +
+  labs(y = "Geometric Size (log(mm))", x = "Sequence Stratigraphic Framework")+
+  theme(legend.position="bottom", legend.title = element_blank())
+
+ggsave("Solemyoida.eps", plot = s1, device = "eps",
+       width = 60, height = 120, units = c("mm"), dpi = 900)
+
+#############################Water depth#####################################
+
+Perm <- tow[tow$StrSeq == "Lo3" | tow$StrSeq == "Lo4" | tow$StrSeq == "Lo5",]
+
+#For the three species that occur in all environments
+unio <- Perm[Perm$Name =="Unionites jacobi" |Perm$Name=="Bakevellia preromangica" | Perm$Name=="Gardenapecten trinkeri",]
+max_y <- max(unio$LN) * 1.1  # Slight buffer above max value
+
+ggplot(unio, aes(x = Section, y = LN, col = Name)) + 
+  geom_boxplot(position = position_dodge2(preserve = "single")) +
+  stat_summary(fun.data = give.n.top, geom = "text", fun.y = median,
+               position = position_dodge(width = 0.75))+
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank()) +
+  geom_hline(aes(yintercept=0)) +
+  geom_vline(aes(xintercept=1.5))+
+  geom_vline(aes(xintercept=6.5))+
+  annotate("text", x=1, y=3.7, label= "Shoreface") + 
+  annotate("text", x=4, y=3.7, label= "Shallow ramp") + 
+  annotate("text", x=7.5, y=3.7, label= "Distal ramp") + 
+  ylim(0, max_y) +
+  labs(y = "Geometric Size (log(mm))", x = "Locality")+
+  theme(legend.position = c(0.45, 0.12), legend.title =element_blank())

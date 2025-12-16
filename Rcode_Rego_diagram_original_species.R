@@ -1,6 +1,7 @@
 library("ggplot2")
 
 #Rego diagram, where the relative abundance of different species affects the results
+#This code is for Fig. 4 and Fig. S12 
 
 #Read in raw data
 siz <- read.csv2("WF_Bivalve_Body_Size.csv")
@@ -17,6 +18,9 @@ y <- c("Lo3", "Lo4", "Lo5", "In1", "In2", "Ol1", "Ol2", "Ol3")
 #you will need to set the time bin comparison names
 df1 <- data.frame(Com = c("Lo3-Lo4", "Lo4-Lo5", "Lo5-In1", "In1-In2", "In2-Ol1", "Ol1-Ol2", "Ol2-Ol3"), 
                   Ass = NA, Ext = NA, Wit = NA, Ori = NA, Num = 0)
+
+#For plotting Fig.4, you set the iteration at i<-3 for the mass extinction and bypass the initial for-loop command.
+#i<- 3
 
 #Main loop to calculate mean body size changes
 for (i in 1: nrow(df1)) {
@@ -128,7 +132,7 @@ summary(df1)
 rego_col <- c("#75CFE0", "#245726", "#9CE551")
 T.t <- t(as.matrix(df1[,2:4])) #trans
 
-windows(12, 9)
+pdf("S12.pdf",12, 9)
 par(mar=c(15,5,2,2))
 barplot(T.t, ylab="effect on size change [log(mm2)]", xlab="", beside=T, col=rego_col, ylim=c(-1, 1), border = NA, cex.axis = 1.5, cex.lab=1.5,
         names.arg=c("Lo3-Lo4", "Lo4-Lo5", "Lo5-In1","In1-In2", "In2-Ol1", "Ol1-Ol2", "Ol2-Ol3"), las=1, cex.names = 1.4)
@@ -161,4 +165,4 @@ abline(h=0, lwd=0.5)
 
 legend("topright", legend=c("Assemblage size shift", "Disappearance", "Within-lineage", "Appearance"), 
        bty="n", fill=c("grey80", rego_col), border=c("grey80", rego_col), cex=1.5)
-
+dev.off()
